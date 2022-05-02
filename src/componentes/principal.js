@@ -3,75 +3,134 @@ import './css/style.css';
 import imgheader from './img/headerlogo.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faCancel, faEdit, faDeleteLeft } from '@fortawesome/free-solid-svg-icons';
-import validateEmail from './validator/validatorEmail';
+import validator from 'validator';
 
-
+/**
+ * este componente cosume los servicios de api y muestra los resultados
+ * permite realizar CRUD (se uso borrado logico)
+ * se utilizan  hooks useState para inicializar la variable y el set para
+ * cambiar dicho valor, el hook useEffect me permite realizar una accion
+ * despues de ejecutar un codigo, especifico en este caso cargar los datos
+ * al inicar la vista 
+ * @returns retorna una vista con los datos capturados
+ */
 const Principal = () => {
 
+    /**
+     * esta variable almacena un vector de objetos con todos los datos
+     * su estado inicial es vacio[]
+     */
     const [todos, setTodos] = useState([]);
+
+    /**
+     * esta variable almacenara el nombre del contacto 
+     */
     const [name, setName] = useState('');
+
+    /**
+     * esta variable almacenara el Telefóno del contacto 
+     */
     const [telephone, setTelephone] = useState('');
+
+    /**
+     * esta variable almacenara el email del contacto 
+     */
     const [email, setEmail] = useState('');
+
+    /**
+     * esta variable fecha nacimiento  del contacto 
+     */
     const [born, setBorn] = useState('');
-    //const [status2,setStatus2]=useState('activado');
-    const [status,setStatus]=useState('activado');
+
+    /**
+     * esta variable almacenara el estado del contacto 
+     * por defecto esta activo
+     */
+    const [status, setStatus] = useState('activado');
+
+    /**
+     * esta variable almacenara el error cuando se 
+     * deje un campo en blanco al guardar 
+     */
     const [error, setError] = useState('');
+
+    /**
+     * esta variable almacenara el error, cuando se 
+     * deje un campo en blanco al editar
+     */
     const [error2, setError2] = useState('');
+
+    /**
+     * esta variable almacenara el estado de boton
+     * guardar, es decir se deshbilite luego de dar click
+     * sobre dicho boton, se activara luego de que el 
+     * guardado sea exitoso.
+     * 
+     */
     let [btnActivo, setBtnActivo] = useState(false);
+
+    /**
+     * se utiliza como parametro en el hook useEffect
+     * permite solo cargar los datos la pagina una vez
+     * al iniciar,
+     * NOTA:
+     * si se deja sin este parametro este hook ejecutara la carga de datos cada segundo
+     * lo que no es recomendable
+     */
     let contador = 0;
 
 
-
-
-    const validarCampos = (e, id) => {
+    /**
+     * esta funcion valida que los campos no queden en blanco
+     */
+    const validarCampos = (e, todo) => {
 
         if (name === null || name === "") {
             setError("Se requiere el Nombre del Contacto");
+            setError2("Se requiere el Nombre del Contacto");
 
         } else if (telephone === null || telephone === "") {
             setError("Se requiere el Telefóno del Contacto");
+            setError2("Se requiere el Telefóno del Contacto");
 
         } else if (email === null || email === "") {
             setError("Se requiere el Correo del Contacto");
+            setError2("Se requiere el Correo del Contacto");
 
         } else if (born === null || born === "") {
             setError("Se requiere Fecha Nacimiento del Contacto");
+            setError2("Se requiere Fecha Nacimiento del Contacto");
 
         } else {
-            let option = validateEmail(email);
-            if (option) {
-                if (id === null || id === "") {
+            if (todo === null) {
+                let option = validator.isEmail(email);
+                if (option) {
                     setError(" ");
                     setBtnActivo(true);
                     guardarTodo(e);
                 } else {
-                    updateTodo(e, id);
+                    setError("Correo invalido");
                 }
             } else {
-                if (id === null || id === "") {
-                    setError("Correo invalido");
+                let option2 = validator.isEmail(email);
+                if (option2) {
+                    updateTodo(e, todo.id);
                 } else {
                     setError2("Correo invalido");
                 }
-
             }
+
         }
 
     }
 
-
-
-
-
-
-    //con este metodo inserti registros     
-    //
-    //
+    /**
+     * permite guardar los datos de nuevo contacto
+     * es una funcion asincrona 
+     */
     const guardarTodo = async (e) => {
 
         e.preventDefault();
-        
-
         try {
 
             const body = { name, telephone, email, born, status }
@@ -97,6 +156,10 @@ const Principal = () => {
 
     }
 
+    /**
+     * permite actualizar los datos del contacto
+     * es una funcion asincrona 
+     */
     const updateTodo = async (e, id) => {
         e.preventDefault();
 
@@ -114,6 +177,7 @@ const Principal = () => {
                     setError2("");
                 }, 2000)
                 getTodos();
+
             }).catch((err) => console.log(err))
 
 
@@ -122,19 +186,20 @@ const Principal = () => {
         }
     }
 
+    /**
+     * permite borrar un contacto (borrado logico)
+     * es una funcion asincrona 
+     */
     const DeleteTodo = async (e, id) => {
         e.preventDefault();
-        
-        
-
         try {
 
             await fetch(`http://localhost:8080/contact/status/${id}`, {
                 method: "PATCH",
-                
+
             }).then(() => {
                 getTodos();
-            })
+            }).catch((err) => console.log(err))
 
 
         } catch (err) {
@@ -142,9 +207,10 @@ const Principal = () => {
         }
     }
 
-
-
-
+    /**
+     * esta funcion permite cargar todos lo datos existentes
+     * y actualiza el estado de la variable todos (setTodos())
+     */
     const getTodos = async () => {
 
         try {
@@ -159,39 +225,42 @@ const Principal = () => {
 
     }
 
-
-
     const limpiarCampos = () => {
 
         setName('');
         setTelephone('');
         setEmail('');
         setBorn('');
+        setError('');
+        setError2('');
 
     }
-
+    /**
+     * este hook permite acceso solo una vez 
+     * ql cargar la pagina a la funcion getTodos
+     * el parametro contador permite ese control
+     */
     useEffect(() => {
         getTodos()
     }, [contador])
 
+    /**
+     * actualiza las variable
+     * se utiliza al editar un contacto
+     */
     const loadDates = (todo) => {
         setName(todo.name);
         setTelephone(todo.telephone);
         setEmail(todo.email);
         setBorn(todo.born);
         setStatus(todo.status)
-        
+
     }
 
-    
-
-
-
-
-
-
+    /**
+     * retorna la pagina
+     */
     return (
-
 
         <>
 
@@ -248,6 +317,11 @@ const Principal = () => {
                     </thead>
                     <tbody>
                         {
+                            /**
+                             * mapea todos los contactos existentes en variable la
+                             * todos(vector), y pasa una a todo mostrar respectiva-
+                             * mente
+                             */
                             todos.map(todo => (
 
 
@@ -286,7 +360,7 @@ const Principal = () => {
                                                         </div>
                                                     </div>
                                                     <div className="modal-footer">
-                                                        <button type="button" className="btn btn-primary" data-bs-dismiss="" onClick={e => validarCampos(e, todo.id)}><FontAwesomeIcon icon={faEdit} />Editar</button>
+                                                        <button type="button" className="btn btn-primary" data-bs-dismiss="" onClick={e => validarCampos(e, todo)}><FontAwesomeIcon icon={faEdit} />Editar</button>
                                                         <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><FontAwesomeIcon icon={faCancel} />Cancelar</button>
                                                     </div>
 
@@ -295,7 +369,7 @@ const Principal = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <button  type="button" className="btn btn-danger" data-bs-toggle="modal" data-bs-target={`#id3${todo.id}`}>
+                                        <button type="button" className="btn btn-danger" data-bs-toggle="modal" data-bs-target={`#id3${todo.id}`}>
                                             <FontAwesomeIcon icon={faDeleteLeft} />
                                             Eliminar
                                         </button>
@@ -310,14 +384,14 @@ const Principal = () => {
                                                         <div className="container">
                                                             <div className="row">
                                                                 <div className="col-4"><label>Nombre</label>
-                                                                    <input type="text" value={todo.name} />
+                                                                    <input type="text" value={todo.name} readOnly />
                                                                     <label>Telefóno</label>
-                                                                    <input type="text" value={todo.telephone} /></div>
+                                                                    <input type="text" value={todo.telephone} readOnly /></div>
                                                                 <div className="col-2"></div>
                                                                 <div className="col-4"><label>Correo</label>
-                                                                    <input type="text" value={todo.email} />
+                                                                    <input type="text" value={todo.email} readOnly />
                                                                     <label>Nacimiento</label>
-                                                                    <input type="date" value={todo.born} /></div>
+                                                                    <input type="date" value={todo.born} readOnly /></div>
                                                                 <div className="col-8">{error2}</div>
                                                             </div>
                                                         </div>

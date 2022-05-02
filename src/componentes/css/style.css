@@ -1,3 +1,7 @@
+/**
+  complementa los estilos 
+*/
+
 body{
     margin: 0;
     padding: 0;
@@ -6,9 +10,7 @@ body{
   }
   
   .header{
-    /*background: rgb(165,54,9);
-    background: linear-gradient(90deg, rgba(165,54,9,1) 0%, rgba(121,15,15,1) 26%, rgba(121,15,15,1) 76%, rgba(165,54,9,1) 100%);
-    */
+    
     width: 100%;
     height: 90px;
     background:#04b6fe;
